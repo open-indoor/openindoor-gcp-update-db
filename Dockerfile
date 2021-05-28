@@ -76,6 +76,11 @@ COPY ./places-finder.py /places-finder/places-finder.py
 COPY ./regions.json /places-finder/regions.json
 COPY ./tours.osm.pbf /places-finder/tours.osm.pbf
 RUN chmod +x /places-finder/loadTours.py
+# ENV DB_USER=openindoor-db-admin
+# ENV DB_PASS=admin123  
+# ENV DB_NAME=openindoor-db
+# ENV DB_HOST=openindoor-db
+# ENV DB_PORT=5432
 
 CMD bash -c "/places-finder/loadTours.py"  
 
