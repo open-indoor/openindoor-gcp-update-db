@@ -9,7 +9,6 @@ db_port = os.environ["DB_PORT"]
 db_pass = os.environ["DB_PASS"]
 db_name = os.environ["DB_NAME"]
 db_host = os.environ["DB_HOST"]
-db = os.environ("DB")
 
 #Load Tours' data in the postgis database
 def main():
