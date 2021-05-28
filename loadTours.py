@@ -4,7 +4,6 @@ import subprocess
 import os
 import subprocess
 from flask import Flask
-import getData
 import logging
 
 
