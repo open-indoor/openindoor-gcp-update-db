@@ -2,11 +2,11 @@ steps:
 # Build and tag the Docker image of tegola
 - name: 'gcr.io/cloud-builders/docker'
   id: Build
-  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/terraform-mvt/openindoor-repo/update-openindoor-db:$SHORT_SHA', '.' ]  
+  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/terraform-mvt/main-openindoor-repo/update-openindoor-db:$SHORT_SHA', '.' ]  
 # Push the Docker image to Artifact repository
 - name: 'gcr.io/cloud-builders/docker'
   id: Push
-  args: ['push', 'europe-west1-docker.pkg.dev/terraform-mvt/openindoor-repo/update-openindoor-db:$SHORT_SHA']
+  args: ['push', 'europe-west1-docker.pkg.dev/terraform-mvt/main-openindoor-repo/update-openindoor-db:$SHORT_SHA']
 # Deploy the image to Cloud Run
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: gcloud
@@ -15,7 +15,7 @@ steps:
   - 'deploy'
   - 'update-db'
   - '--image'
-  - 'europe-west1-docker.pkg.dev/terraform-mvt/openindoor-repo/update-openindoor-db:$SHORT_SHA'
+  - 'europe-west1-docker.pkg.dev/terraform-mvt/main-openindoor-repo/update-openindoor-db:$SHORT_SHA'
   - '--region'
   - 'europe-west1'
   - '--platform'
@@ -24,4 +24,4 @@ steps:
   - 'internal-and-cloud-load-balancing'
   - '--no-allow-unauthenticated'
 images:
-- 'europe-west1-docker.pkg.dev/terraform-mvt/openindoor-repo/update-openindoor-db'
+- 'europe-west1-docker.pkg.dev/terraform-mvt/main-openindoor-repo/update-openindoor-db'
