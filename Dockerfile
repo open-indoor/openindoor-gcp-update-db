@@ -77,7 +77,7 @@ COPY ./regions.json /places-finder/regions.json
 COPY ./tours.osm.pbf /places-finder/tours.osm.pbf
 RUN chmod +x /places-finder/loadTours.py
 
-CMD bash -c "/places-finder/loadTours.py"  
+CMD bash -c "/places-finder/main.py"  
 
 
 
