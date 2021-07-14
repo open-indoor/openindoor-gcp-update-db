@@ -71,11 +71,11 @@ COPY ./requirements.txt /places-finder/
 RUN pip3 install -r /places-finder/requirements.txt
 
 
-COPY loadTours.py /places-finder/loadTours.py
+COPY main.py /places-finder/main.py
 COPY ./places-finder.py /places-finder/places-finder.py
 COPY ./regions.json /places-finder/regions.json
 COPY ./tours.osm.pbf /places-finder/tours.osm.pbf
-RUN chmod +x /places-finder/loadTours.py
+RUN chmod +x /places-finder/main.py
 
 CMD bash -c "/places-finder/main.py"  
 
