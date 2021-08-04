@@ -24,6 +24,9 @@ from sqlalchemy import Table, MetaData, Column, Integer, String, TIMESTAMP, crea
 from sqlalchemy.dialects.postgresql import insert
 from geoalchemy2 import WKTElement, Geometry
 
+from flask import Flask
+import logging
+
 def deg2num(lon_deg, lat_deg, zoom):
     lat_rad = math.radians(lat_deg)
     n = 2.0 ** zoom
@@ -475,9 +478,6 @@ def finder(
     # with open(places_file_geojson_cleaning,"w") as outfile:
     #     json.dump(json.loads(gdf_clean.to_json(na="drop")), outfile)
 
-    
-
-
 
 def upsert(table, conn, keys, data_iter):
     """
@@ -543,8 +543,27 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
         method = upsert
 )
 
+@app.route("/", methods=['GET',])
+def index():
+    loadTours()
+    return "DONE"
+
+@app.errorhandler(500)
+def server_error(e):
+    logging.exception('An error occurred during a request.')
+    return """
+    An internal error occurred: <pre>{}</pre>
+    See logs for full stacktrace.
+    """.format(e), 500
 
 def main():
+
+    db_user = os.environ["DB_USER"]
+    db_port = os.environ["DB_PORT"]
+    db_pass = os.environ["DB_PASS"]
+    db_name = os.environ["DB_NAME"]
+    db_host = os.environ["DB_HOST"]
+
     mygdf = geopandas.GeoDataFrame()
     with open('regions.json') as regions:
         region_data = json.load(regions)
@@ -563,13 +582,16 @@ def main():
 
     gdf_to_db(gdf=mygdf,
         system="postgresql",
-        user=os.environ["DB_USER"],
-        password=os.environ["DB_PASS"],
-        server=os.environ["DB_HOST"],
-        port=os.environ["DB_PORT"],
-        db_name=os.environ["DB_NAME"],
+        user=db_user,
+        password=db_pass,
+        server=db_host,
+        port=db_port,
+        db_name=db_name,
         db_table_name="building_footprint")
 
-if __name__ == "__main__":
-    main()
 
+if __name__ == "__main__":
+    app=Flask(__name__)
+    port = int(os.environ.get("PORT",8080))
+    app.run(debug=True,host='0.0.0.0',port=port)
+    main()
