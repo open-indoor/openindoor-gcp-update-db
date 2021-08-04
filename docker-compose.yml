@@ -44,7 +44,7 @@ services:
     volumes:
     # - pbf-storage:/data
     # - ./places-finder/data:/data
-    - ./places-finder/places-finder.py:/places-finder/places-finder.py
+    - ./places-finder/main.py:/places-finder/main.py
     - ./places-finder/regions.json:/places-finder/regions.json
     - ./places-finder/interior_data.py:/places-finder/interior_data.py
     - ./places-finder/keep.json:/places-finder/keep.json
@@ -57,7 +57,7 @@ services:
     # - ./test:/test
     # ports:
     #   - 8001:80
-    command: /places-finder/places-finder.py
+    command: /places-finder/main.py
 
 volumes:
   pbf-storage:
