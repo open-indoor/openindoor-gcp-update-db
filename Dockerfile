@@ -65,7 +65,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /places-finder
-COPY ./requirements.txt /places-finder/
+COPY ./places-finder/requirements.txt /places-finder/
 RUN pip3 install -r /places-finder/requirements.txt
 
 # COPY ./Caddyfile /etc/caddy/Caddyfile
