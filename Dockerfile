@@ -72,13 +72,13 @@ RUN pip3 install -r /places-finder/requirements.txt
 
 WORKDIR /places-finder
 
-COPY ./places-finder.py /places-finder/places-finder.py
+COPY ./main.py /places-finder/main.py
 COPY ./interior_data.py /places-finder/interior_data.py
 COPY ./regions.json /places-finder/regions.json
 COPY ./keep.json /places-finder/keep.json
-RUN chmod +x /places-finder/places-finder.py
+RUN chmod +x /places-finder/main.py
 RUN chmod +x /places-finder/interior_data.py
 
 #RUN mkdir -p /data/tmp
 
-CMD bash -c "/places-finder/places-finder.py"
+CMD bash -c "/places-finder/main.py"
