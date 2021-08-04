@@ -27,6 +27,8 @@ from geoalchemy2 import WKTElement, Geometry
 from flask import Flask
 import logging
 
+app=Flask(__name__)
+
 def deg2num(lon_deg, lat_deg, zoom):
     lat_rad = math.radians(lat_deg)
     n = 2.0 ** zoom
@@ -545,7 +547,7 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
 
 @app.route("/", methods=['GET',])
 def index():
-    loadTours()
+    main()
     return "DONE"
 
 @app.errorhandler(500)
@@ -591,7 +593,6 @@ def main():
 
 
 if __name__ == "__main__":
-    app=Flask(__name__)
     port = int(os.environ.get("PORT",8080))
     app.run(debug=True,host='0.0.0.0',port=port)
     main()
