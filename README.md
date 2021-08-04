@@ -1,1 +1,0 @@
-# openindoor-gcp-update-db
