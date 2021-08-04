@@ -53,10 +53,8 @@ WORKDIR /places-finder
 
 COPY ./places-finder.py /places-finder/places-finder.py
 COPY ./regions.json /places-finder/regions.json
-COPY ./.pgpass /root/.pgpass
 COPY ./interior_data.py /places-finder/interior_data.py
 COPY ./keep.json /places-finder/keep.json
-RUN chmod 0600 /root/.pgpass
 RUN chmod +x /places-finder/places-finder.py
 RUN chmod +x /places-finder/interior_data.py
 

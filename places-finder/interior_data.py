@@ -238,9 +238,9 @@ mygdf.drop(axis=1,columns=(mygdf.columns.difference(keep_list)),inplace=True)
 
 gdf_to_db(gdf=mygdf,
     system="postgresql",
-    user="openindoor-db-admin",
-    password=os.environ["POSTGRES_PASSWORD"],
-    server="openindoor-db",
-    port=5432,
-    db_name="openindoor-db",
-    db_table_name="building_item")
+    user=os.environ["DB_USER"],
+    password=os.environ["DB_PASS"],
+    server=os.environ["DB_HOST"],
+    port=os.environ["DB_PORT"],
+    db_name=os.environ["DB_NAME"],
+    db_table_name="building_footprint")
