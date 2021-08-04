@@ -1,5 +1,5 @@
 ################ PLACES #####################
-FROM alpine:latest
+FROM debian:latest
 
 RUN apt update && apt upgrade\
     && apt install \
