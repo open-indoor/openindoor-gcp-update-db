@@ -1,0 +1,64 @@
+version: "3.6"
+services:
+
+  openindoor-db:
+    image: postgis/postgis:13-3.1
+    volumes:
+       - db-storage:/var/lib/postgresql/data
+      #  - init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    environment:
+      POSTGRES_DB: openindoor-db
+      POSTGRES_USER: openindoor-db-admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+    - 5432:5432
+
+  openindoor-adminer:
+    image: adminer
+    restart: always
+    ports:
+     - 8091:8080
+
+  openindoor-tegola:
+    image: gospatial/tegola:v0.12.1
+    environment:
+      POSTGRES_DB: openindoor-db
+      POSTGRES_USER: openindoor-db-admin
+      POSTGRES_PASSWORD: admin123    
+    command: serve --config /opt/tegola_config/config.toml
+    volumes:
+    - ./tegola-val:/opt/tegola_config
+    ports:
+    - 12092:12092
+
+  places-finder:
+    # dns:
+    # - 213.186.33.99
+    build:
+      context: places-finder
+    image: openindoor/places-finder
+    environment:
+      POSTGRES_DB: openindoor-db
+      POSTGRES_USER: openindoor-db-admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+    # - pbf-storage:/data
+    # - ./places-finder/data:/data
+    - ./places-finder/main.py:/places-finder/main.py
+    - ./places-finder/regions.json:/places-finder/regions.json
+    - ./places-finder/interior_data.py:/places-finder/interior_data.py
+    - ./places-finder/keep.json:/places-finder/keep.json
+
+
+    # - ./places-flask.py:/places/places-flask.py
+    # - ./ogr2ogr.py:/places/ogr2ogr.py
+    # - ./init_db.sh:/places/init_db.sh
+    # - ./import.sh:/places/import.sh
+    # - ./test:/test
+    # ports:
+    #   - 8001:80
+    command: /places-finder/main.py
+
+volumes:
+  pbf-storage:
+  db-storage:
