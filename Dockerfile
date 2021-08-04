@@ -1,8 +1,8 @@
 ################ PLACES #####################
-FROM fedora:rawhide
+FROM alpine:latest
 
-RUN dnf -y upgrade \
-    && dnf -y install \
+RUN apt update && apt upgrade\
+    && apt install \
       bash \
       cronie \
       curl \
@@ -24,7 +24,7 @@ RUN dnf -y upgrade \
       wget \
     && dnf -y clean all
 
-RUN dnf -y install \
+RUN apt install \
       gdal \
       osmctools \
       postgresql \
