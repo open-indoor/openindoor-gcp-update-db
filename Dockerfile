@@ -1,8 +1,7 @@
 ################ PLACES #####################
 FROM alpine:latest
 
-RUN apt update \
-	apt upgrade\
+RUN apt update && apt upgrade\
     && apt install \
       bash \
       cronie \
