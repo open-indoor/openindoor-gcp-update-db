@@ -72,7 +72,7 @@ RUN pip3 install -r /places-finder/requirements.txt
 
 WORKDIR /places-finder
 
-COPY ./places-finder/places-finder/main.py /places-finder/main.py
+COPY ./places-finder/main.py /places-finder/main.py
 COPY ./places-finder/interior_data.py /places-finder/interior_data.py
 COPY ./places-finder/regions.json /places-finder/regions.json
 COPY ./places-finder/keep.json /places-finder/keep.json
