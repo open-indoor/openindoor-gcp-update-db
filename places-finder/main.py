@@ -27,7 +27,7 @@ from geoalchemy2 import WKTElement, Geometry
 from flask import Flask
 import logging
 
-app=Flask(__name__)
+#app=Flask(__name__)
 
 def deg2num(lon_deg, lat_deg, zoom):
     lat_rad = math.radians(lat_deg)
@@ -500,8 +500,8 @@ def upsert(table, conn, keys, data_iter):
 
     unique_id="openindoor_id"
     conn.execute('''
-        ALTER TABLE {1} DROP CONSTRAINT IF EXISTS constraint_{2};
-        ALTER TABLE {1} ADD CONSTRAINT constraint_{2} PRIMARY KEY({2});
+        ALTER TABLE {1} DROP CONSTRAINT IF EXISTS toto;
+        ALTER TABLE {1} ADD CONSTRAINT toto PRIMARY KEY({2});
         ALTER TABLE {1} ALTER COLUMN {2} SET NOT NULL;
         ALTER TABLE {1} ALTER COLUMN geometry TYPE geometry;
         ALTER TABLE {1} ALTER COLUMN openindoor_centroid TYPE geometry;
@@ -544,7 +544,7 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
     )
 
     gdf['geometry']=gdf.geometry.apply(lambda geom: WKTElement(geom.wkt, srid=4326))
-    gdf['openindoor_centroid']=gdf.openindoor_centroid.apply(lambda geom: WKTElement(geom.wkt, srid=4326))
+    gdf['openindoor_centroid']=gdf['openindoor_centroid'].apply(lambda geom: WKTElement(geom.wkt, srid=4326))
     gdf.rename(columns={"id":"openindoor_id"},inplace=True)
 
 
@@ -557,18 +557,18 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
         method = upsert
 )
 
-@app.route("/", methods=['GET',])
-def index():
-    main()
-    return "DONE"
+# @app.route("/", methods=['GET',])
+# def index():
+#     main()
+#     return "DONE"
 
-@app.errorhandler(500)
-def server_error(e):
-    logging.exception('An error occurred during a request.')
-    return """
-    An internal error occurred: <pre>{}</pre>
-    See logs for full stacktrace.
-    """.format(e), 500
+# @app.errorhandler(500)
+# def server_error(e):
+#     logging.exception('An error occurred during a request.')
+#     return """
+#     An internal error occurred: <pre>{}</pre>
+#     See logs for full stacktrace.
+#     """.format(e), 500
 
 def main():
 
@@ -578,21 +578,30 @@ def main():
     db_name = os.environ["DB_NAME"]
     db_host = os.environ["DB_HOST"]
 
-    mygdf = geopandas.GeoDataFrame()
-    with open('regions.json') as regions:
-        region_data = json.load(regions)
-    for region in region_data['regions']:
-        mygdf = mygdf.append(pbf_extractor(region))
+    # db_user = "openindoor-db-admin"
+    # db_port = 5432
+    # db_pass = "admin123"
+    # db_name = "openindoor-db"
+    # db_host = "openindoor-db"
+
+    # mygdf = geopandas.GeoDataFrame()
+    # with open('regions.json') as regions:
+    #     region_data = json.load(regions)
+    # for region in region_data['regions']:
+    #     mygdf = mygdf.append(pbf_extractor(region))
     
-    with open("keep.json") as keep:
-        keep_data = json.load(keep)
+    # with open("keep.json") as keep:
+    #     keep_data = json.load(keep)
 
-    serie = mygdf.isnull().sum().apply(lambda n : n/mygdf.shape[0]*100<95)
-    keep_list = serie.loc[serie].index
-    keep_list = keep_list.union(keep_data["footprint_key"])
-    mygdf.drop(axis=1,columns=(mygdf.columns.difference(keep_list)),inplace=True)
+    # serie = mygdf.isnull().sum().apply(lambda n : n/mygdf.shape[0]*100<95)
+    # keep_list = serie.loc[serie].index
+    # keep_list = keep_list.union(keep_data["footprint_key"])
+    # mygdf.drop(axis=1,columns=(mygdf.columns.difference(keep_list)),inplace=True)
 
-    print(mygdf)
+    p = Polygon([(0,1),(1,1),(1,0),(0,0)])
+    mygdf=geopandas.GeoDataFrame({"geometry":[p],"openindoor_id":["w123"]})
+    mygdf["openindoor_centroid"]=mygdf.centroid
+
 
     gdf_to_db(gdf=mygdf,
         system="postgresql",
@@ -601,10 +610,10 @@ def main():
         server=db_host,
         port=db_port,
         db_name=db_name,
-        db_table_name="building_footprint")
+        db_table_name="val_table")
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT",8080))
-    app.run(debug=True,host='0.0.0.0',port=port)
+    #port = int(os.environ.get("PORT",8080))
+    #app.run(debug=True,host='0.0.0.0',port=port)
     main()

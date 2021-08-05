@@ -17,7 +17,7 @@ services:
     image: adminer
     restart: always
     ports:
-     - 8091:8080
+     - 19991:8080
 
   openindoor-tegola:
     image: gospatial/tegola:v0.12.1
@@ -35,7 +35,7 @@ services:
     # dns:
     # - 213.186.33.99
     build:
-      context: places-finder
+      context: .
     image: openindoor/places-finder
     environment:
       POSTGRES_DB: openindoor-db
