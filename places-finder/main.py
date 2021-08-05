@@ -540,7 +540,7 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
             host=server,
             port=port,
             database=db_name,
-        )      
+        ),**db_config      
     )
 
     gdf['geometry']=gdf.geometry.apply(lambda geom: WKTElement(geom.wkt, srid=4326))
