@@ -20,7 +20,7 @@ from shapely.ops import unary_union
 import numpy
 import wget
 from datetime import datetime
-from sqlalchemy import Table, MetaData, Column, Integer, String, TIMESTAMP, create_engine, BigInteger, dialects, inspect
+from sqlalchemy import Table, MetaData, Column, Integer, String, TIMESTAMP, create_engine, engine, BigInteger, dialects, inspect
 from sqlalchemy.dialects.postgresql import insert
 from geoalchemy2 import WKTElement, Geometry
 
@@ -528,8 +528,20 @@ def upsert(table, conn, keys, data_iter):
     conn.execute(upsert_stmt, data)
 
 def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name):
-    engine=create_engine(system + "://" + user + ":" + password +"@" + server + ":" + str(port) + "/" + db_name)
+    
+    
+    #engine=create_engine(system + "://" + user + ":" + password +"@" + server + ":" + str(port) + "/" + db_name)
 
+    pool = create_engine(
+        engine.url.URL.create(
+            drivername=system,
+            username=user,
+            password=password,
+            host=server,
+            port=port,
+            database=db_name,
+        )      
+    )
 
     gdf['geometry']=gdf.geometry.apply(lambda geom: WKTElement(geom.wkt, srid=4326))
     gdf['openindoor_centroid']=gdf.openindoor_centroid.apply(lambda geom: WKTElement(geom.wkt, srid=4326))
@@ -538,7 +550,7 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
 
     gdf.to_sql(
         name = db_table_name,
-        con = engine,
+        con = pool,
         if_exists = 'append',
         index = False,
         dtype = {'geometry': Geometry(geometry_type='POLYGON', srid=4326),'openindoor_centroid': Geometry(geometry_type='POINT', srid=4326)},
