@@ -500,8 +500,8 @@ def upsert(table, conn, keys, data_iter):
 
     unique_id="openindoor_id"
     conn.execute('''
-        ALTER TABLE {1} DROP CONSTRAINT IF EXISTS toto;
-        ALTER TABLE {1} ADD CONSTRAINT toto PRIMARY KEY({2});
+        ALTER TABLE {1} DROP CONSTRAINT IF EXISTS constraint_pk_{1}_{2};
+        ALTER TABLE {1} ADD CONSTRAINT constraint_pk_{1}_{2} PRIMARY KEY({2});
         ALTER TABLE {1} ALTER COLUMN {2} SET NOT NULL;
         ALTER TABLE {1} ALTER COLUMN geometry TYPE geometry;
         ALTER TABLE {1} ALTER COLUMN openindoor_centroid TYPE geometry;
@@ -578,29 +578,19 @@ def main():
     db_name = os.environ["DB_NAME"]
     db_host = os.environ["DB_HOST"]
 
-    # db_user = "openindoor-db-admin"
-    # db_port = 5432
-    # db_pass = "admin123"
-    # db_name = "openindoor-db"
-    # db_host = "openindoor-db"
-
-    # mygdf = geopandas.GeoDataFrame()
-    # with open('regions.json') as regions:
-    #     region_data = json.load(regions)
-    # for region in region_data['regions']:
-    #     mygdf = mygdf.append(pbf_extractor(region))
+    mygdf = geopandas.GeoDataFrame()
+    with open('regions.json') as regions:
+        region_data = json.load(regions)
+    for region in region_data['regions']:
+        mygdf = mygdf.append(pbf_extractor(region))
     
-    # with open("keep.json") as keep:
-    #     keep_data = json.load(keep)
+    with open("keep.json") as keep:
+        keep_data = json.load(keep)
 
-    # serie = mygdf.isnull().sum().apply(lambda n : n/mygdf.shape[0]*100<95)
-    # keep_list = serie.loc[serie].index
-    # keep_list = keep_list.union(keep_data["footprint_key"])
-    # mygdf.drop(axis=1,columns=(mygdf.columns.difference(keep_list)),inplace=True)
-
-    p = Polygon([(0,1),(1,1),(1,0),(0,0)])
-    mygdf=geopandas.GeoDataFrame({"geometry":[p],"openindoor_id":["w123"]})
-    mygdf["openindoor_centroid"]=mygdf.centroid
+    serie = mygdf.isnull().sum().apply(lambda n : n/mygdf.shape[0]*100<95)
+    keep_list = serie.loc[serie].index
+    keep_list = keep_list.union(keep_data["footprint_key"])
+    mygdf.drop(axis=1,columns=(mygdf.columns.difference(keep_list)),inplace=True)
 
 
     gdf_to_db(gdf=mygdf,
@@ -610,7 +600,7 @@ def main():
         server=db_host,
         port=db_port,
         db_name=db_name,
-        db_table_name="val_table")
+        db_table_name="building_footprint")
 
 
 if __name__ == "__main__":
