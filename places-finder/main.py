@@ -27,7 +27,7 @@ from geoalchemy2 import WKTElement, Geometry
 from flask import Flask
 import logging
 
-#app=Flask(__name__)
+app=Flask(__name__)
 
 def deg2num(lon_deg, lat_deg, zoom):
     lat_rad = math.radians(lat_deg)
@@ -545,18 +545,18 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
         method = upsert
 )
 
-# @app.route("/", methods=['GET',])
-# def index():
-#     main()
-#     return "DONE"
+@app.route("/", methods=['GET',])
+def index():
+    main()
+    return "DONE"
 
-# @app.errorhandler(500)
-# def server_error(e):
-#     logging.exception('An error occurred during a request.')
-#     return """
-#     An internal error occurred: <pre>{}</pre>
-#     See logs for full stacktrace.
-#     """.format(e), 500
+@app.errorhandler(500)
+def server_error(e):
+    logging.exception('An error occurred during a request.')
+    return """
+    An internal error occurred: <pre>{}</pre>
+    See logs for full stacktrace.
+    """.format(e), 500
 
 def main():
 
@@ -602,6 +602,6 @@ def main():
 
 
 if __name__ == "__main__":
-    #port = int(os.environ.get("PORT",8080))
-    #app.run(debug=True,host='0.0.0.0',port=port)
+    port = int(os.environ.get("PORT",8080))
+    app.run(debug=True,host='0.0.0.0',port=port)
     main()
