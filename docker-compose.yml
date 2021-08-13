@@ -38,9 +38,12 @@ services:
       context: .
     image: openindoor/places-finder
     environment:
-      POSTGRES_DB: openindoor-db
-      POSTGRES_USER: openindoor-db-admin
-      POSTGRES_PASSWORD: admin123
+      # POSTGRES_DB: openindoor-db
+      # POSTGRES_USER: openindoor-db-admin
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_HOST=${DB_HOST}
     volumes:
     # - pbf-storage:/data
     # - ./places-finder/data:/data

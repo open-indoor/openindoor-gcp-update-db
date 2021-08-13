@@ -76,6 +76,9 @@ COPY ./places-finder/main.py /places-finder/main.py
 COPY ./places-finder/interior_data.py /places-finder/interior_data.py
 COPY ./places-finder/regions.json /places-finder/regions.json
 COPY ./places-finder/keep.json /places-finder/keep.json
+COPY ./places-finder/server-ca(2).pem /places-finder/server-ca(2).pem
+COPY ./places-finder/client_cert.pem /places-finder/client_cert.pem
+COPY ./places-finder/client_key.pem /places-finder/client_key.pem
 RUN chmod +x /places-finder/main.py
 RUN chmod +x /places-finder/interior_data.py
 

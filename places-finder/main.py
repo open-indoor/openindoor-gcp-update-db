@@ -27,7 +27,7 @@ from geoalchemy2 import WKTElement, Geometry
 from flask import Flask
 import logging
 
-app=Flask(__name__)
+
 
 def deg2num(lon_deg, lat_deg, zoom):
     lat_rad = math.radians(lat_deg)
@@ -53,19 +53,6 @@ def splitter(
         max_zoom = 18,
         bbox={"xmin": 0, "ymin": 0, "xmax": 1, "ymax": 1},
     ):
-    # if (bbox.xmax - bbox.xmin) > 2 or bbox.ymax - bbox.ymin) > 2:
-    #     splitter(
-    #         input_pbf=input_pbf,
-    #         zoom=zoom - 1,
-    #         bbox={
-    #             xmin: bbox.xmin / 2,
-    #             ymin: bbox.ymin / 2,
-    #             xmax: bbox.xmax / 2,
-    #             ymax: bbox.ymax / 2,
-    #         },
-    #         name=name
-    #     )
-    #     return
     extracts = []
     my_finders = []
     indoor_path = "data/" + region_name + "/indoor/"
@@ -182,7 +169,7 @@ def pbf_extractor(region):
         "--output-format=pbf " +\
         "--output=" + building_indoor_pbf + " " +\
         new_pbf_file + " " +\
-        "w/indoor w/building:levels"
+        "w/indoor w/building:levels wa/building"
     #Filtrage du fichier pbf pour ne garder que les batiments voulus.
     print(cmd)
     building_indoor_filter = subprocess.run(cmd, shell=True)
@@ -201,11 +188,6 @@ def pbf_extractor(region):
             "xmax": 1, "ymax": 1,
         }
     )
-    # finder(
-    #     input_pbf=building_indoor_pbf,
-    #     region_name=region_name
-    # )
-
     return mygdf
 
 def finder(
@@ -218,13 +200,7 @@ def finder(
     """
     print("Appel finder")
     indoor_path = "data/" + region_name + "/indoor/"
-    # building_indoor = {"type": "FeatureCollection", "features": [
-    #     {"type":"Feature","geometry":{
-    #         "type":"MultiPolygon",
-    #         "coordinates":[]
-    #     }}
-    #    ]
-    # }
+    #
     with subprocess.Popen(
         "osmium export "
         + file_name + " "
@@ -267,17 +243,6 @@ def finder(
 
     gdf_building = gdf[gdf["building"].notnull()]
     gdf_building = gdf_building[gdf_building["building"]!='no']
-
-    #Contient les Polygon/MultiPolygon en intersection avec une donnée indoor
-    #gdf_building_indoor = gdf[gdf["geometry"].apply(lambda shap : shap if (shap.geom_type in ['Polygon','MultiPolygon'] and gdf_indoor.intersects(shap).any()) else None).notnull()].geometry
-    # border = gdf_building_indoor.unary_union
-    # if border.geom_type=='Polygon':
-    #     row = {"geometry":Polygon(border.exterior)}
-    #     gdf_building_indoor = geopandas.GeoDataFrame(columns=["geometry"])
-    #     gdf_building_indoor = gdf_building_indoor.append(row,ignore_index=True)
-    # else:
-    #     gdf_building_indoor = geopandas.GeoDataFrame([Polygon(shap.exterior) for shap in gdf_building_indoor.unary_union],columns=["geometry"])
-    #gdf_building_indoor = geopandas.GeoDataFrame(gdf_building_indoor,columns=["geometry"])
     
     get_polygon_indoor_building = lambda shap : shap.geom_type in ['Polygon','MultiPolygon'] and gdf_indoor.intersects(shap).any()
 
@@ -306,179 +271,6 @@ def finder(
     gdf_building_indoor["openindoor_centroid"] = gdf_building_indoor.centroid
 
     return gdf_building_indoor
-    
-    # sqlcommand="ALTER TABLE building_footprint "
-
-    # n = len(gdf_building_indoor.columns)
-    # for i in range(n-1):
-    #     sqlcommand+="ADD COLUMN IF NOT EXISTS \"{}\" VARCHAR(255)".format(gdf_building_indoor.columns[i])
-    #     if i<n-2:
-    #         sqlcommand+=","
-    #     else:
-    #         sqlcommand+=";"
-
-    # cmd="psql -h openindoor-db -d openindoor-db -p 5432 -U openindoor-db-admin --command='{}'".format(sqlcommand)
-    # print(cmd)
-    # if n>1:
-    #     sqlrun = subprocess.run(cmd, shell=True)
-    
-    #print("gdf with building with indoor created")
-
-        #Regrouper les polygones qui se superposent en un seul polygone
-        # new_polys=[]
-        # gdf_copy = gdf_building_indoor
-        # for shap in gdf_building_indoor:
-        #     if shap in gdf_copy:
-        #         l = get_all_intersections(gdf_copy, shap)
-        #         if len(l)>1:
-        #             gdf_copy = gdf_copy[gdf_copy.apply(lambda shap : shap not in l)]
-        #             new_polys.append(unary_union(l))
-        #
-        # gdf_building_indoor = gdf_building_indoor.append(geopandas.GeoSeries(new_polys))
-        # gdf_building_indoor = gdf_building_indoor.drop_duplicates()
-        #gdf_building_indoor = geopandas.GeoDataFrame(gdf_building_indoor,columns=["geometry"])
-
-        # for i in range(gdf_building_indoor.shape[0]):
-        #     single_building = {"type": "FeatureCollection", "features": [
-        #         {"type":"Feature","geometry":{
-        #             "type":"Polygon",
-        #             "coordinates":[]
-        #         }}
-        #         ]
-        #     }
-        #     single_building['features'][0]['geometry']['coordinates'].append(list(gdf_building_indoor.geometry.iloc[i].exterior.coords))
-        #     single_building_poly = "data/" + region_name + "/indoor/single_building_poly.geojson"
-        #     with open(single_building_poly) as outfile:
-        #         json.dump(single_building,outfile)
-        #     single_building_pbf = "data/" + region_name + "/indoor/single_building.osm.pbf"
-        #     cmd = "osmium extract " \
-        #         + "--strategy=simple " \
-        #         + "--overwrite " \
-        #         + "--progress " \
-        #         + "--polygon=" + single_building_poly + " " \
-        #         + "--output=" + single_building_pbf + " " \
-        #         + input_pbf
-        #     indoor_filter = subprocess.run(
-        #         cmd,
-        #         shell=True
-        #     )
-        #     with subprocess.Popen(
-        #         "osmium export"
-        #         + "--overwrite"
-        #         + "--progress"
-        #         + single_building_pbf + " "
-        #         + "--output-format=geojson ",
-        #         shell=True,
-        #         stdout=subprocess.PIPE
-        #     ) as proc_export:#export en geojson
-        #         gdf_single_building = geopandas.read_file(proc_export.stdout) #lecture du fichier geojson en geodataframe
-        #     gdf_single_building["openindoor:parent_building_id"] = gdf_building_indoor["openindoor:building_id"].iloc[i]
-        #     gdf_single_building["openindoor:id"]=[j + id_element for j in range(gdf_single_building.shape[0])]
-        #     id_element+=gdf_single_building.shape[0]
-
-    # places_geojson = json.loads(gdf_building_indoor.to_json(na='drop')) #Charger en json
-    # # for place_feature in places_geojson['features']:
-    # #     """Integrer dans building_indoors"""
-    # #     coordinates = place_feature['geometry']['coordinates']
-    # #     building_indoor['features'][0]['geometry']['coordinates'].append(coordinates)
-    # # print("coordinates registered")
-
-    # polygon_file = indoor_path + "building_indoor_polygon.geojson"
-
-
-    # # print("write: " + output_file)
-    # with open(polygon_file, 'w') as outfile:
-    #     json.dump(places_geojson, outfile)
-    #     outfile.flush()
-
-    # sqlcommand = "DELETE FROM building_footprint WHERE openindoor_region=" + region_name
-    # cmd="psql -h openindoor-db -d openindoor-db -p 5432 -U openindoor-db-admin --command='{}'".format(sqlcommand)
-    # print(cmd)
-    # ddb_delete = subprocess.run(
-    #     cmd,
-    #     shell=True
-    # )
-
-    # cmd = "ogr2ogr " \
-    #     + "-update " \
-    #     + "-append " \
-    #     + "-f " \
-    #     + "\"PostgreSQL\" PG:\"dbname='openindoor-db' host='openindoor-db' port='5432' user='openindoor-db-admin' password='{}'\" ".format(os.environ['POSTGRES_PASSWORD']) \
-    #     + polygon_file + " " \
-    #     + "-nln public.building_footprint " \
-    #     + "-skipfailures"
-    # print("cmd: " + cmd)
-    # ddb_insert = subprocess.run(
-    #     cmd,
-    #     shell=True
-    # )
-
-
-
-
-    # places_file_pbf = 'data/' + region_name + "/indoor/building_with_indoor.osm.pbf"
-    # cmd = "osmium extract " \
-    #     + "--strategy=simple " \
-    #     + "--overwrite " \
-    #     + "--progress " \
-    #     + "--polygon=" + polygon_file + " " \
-    #     + "--output=" + places_file_pbf + " " \
-    #     + input_pbf
-    # print("cmd: " + cmd)
-    # indoor_filter = subprocess.run(
-    #     cmd,
-    #     shell=True
-    # )
-    # places_file_geojson = 'data/' +  region_name + "/indoor/building_with_indoor.geojson"
-    # cmd = "osmium export " \
-    #     + "--overwrite " \
-    #     + "--progress " \
-    #     + "--output=" + places_file_geojson + " " \
-    #     + places_file_pbf
-    # print("cmd: " + cmd)
-    # indoor_filter = subprocess.run(
-    #     cmd,
-    #     shell=True
-    # )
-    # print("Cleaning bad data")
-    # gdf_cleaning = geopandas.read_file(places_file_geojson)
-    # n = gdf_cleaning.shape[0]
-    # tab = numpy.empty([gdf_cleaning.shape[0],1],dtype=object)
-    # tab[:,0] = [
-    #     Polygon(mapping(shap)['coordinates']) #Corriger les mauvais LineString
-    #         if shap.geom_type=='LineString' and shap.coords[0] == shap.coords[-1] else
-    #             Polygon(mapping(shap)['coordinates'][0][0]) if shap.geom_type=='MultiPolygon' and len(shap)==1 else
-    #                 MultiPolygon(Polygon(coord[0]) for coord in mapping(shap)['coordinates'])
-    #                     if (
-    #                         shap.geom_type=='MultiLineString'
-    #                         or shap.geom_type=='MultiPolygon'
-    #                     ) else shap
-    #         for shap in gdf_cleaning.geometry
-    # ]
-    # gdf_cleaning.loc[:, 'geometry'] = tab
-    #
-    # gdf_indoor_cleaning = gdf_cleaning[gdf_cleaning['indoor'].notnull()]
-    # gdf_indoor_cleaning = gdf_indoor_cleaning[gdf_indoor_cleaning['indoor']!='no']
-    # gdf_indoor_cleaning.drop_duplicates(subset=["geometry"], inplace=True)
-    #
-    #
-    # gdf_building_indoor_cleaning = gdf_cleaning[gdf_cleaning["geometry"].apply(lambda shap : shap if (shap.geom_type in ['Polygon','MultiPolygon'] and gdf_indoor_cleaning.intersects(shap).any()) else None).notnull()].geometry
-    # border_cleaning = gdf_building_indoor_cleaning.unary_union
-    # if border_cleaning.geom_type=='Polygon':
-    #     row = {"geometry":Polygon(border_cleaning.exterior)}
-    #     gdf_building_indoor_cleaning = geopandas.GeoDataFrame(columns=["geometry"])
-    #     gdf_building_indoor_cleaning = gdf_building_indoor_cleaning.append(row,ignore_index=True)
-    # else:
-    #     gdf_building_indoor_cleaning = geopandas.GeoDataFrame([Polygon(shap.exterior) for shap in gdf_building_indoor_cleaning.unary_union],columns=["geometry"])
-    #
-    # gdf_clean = gdf_cleaning[gdf_cleaning["geometry"].apply(lambda shap : gdf_building_indoor_cleaning.intersects(shap).any())]
-    #
-    # places_file_geojson_cleaning = 'data/' +  region_name + "/indoor/building_with_indoor_clean.geojson"
-    # print("data cleaned : ",n-gdf_clean.shape[0])
-    #
-    #
-    # with open(places_file_geojson_cleaning,"w") as outfile:
-    #     json.dump(json.loads(gdf_clean.to_json(na="drop")), outfile)
 
 
 def upsert(table, conn, keys, data_iter):
@@ -499,9 +291,11 @@ def upsert(table, conn, keys, data_iter):
     # Add contraint if missing
 
     unique_id="openindoor_id"
+
+    #    ALTER TABLE {1} DROP CONSTRAINT IF EXISTS constraint_{2};   # CAN'T DROP THE KEY BECAUSE OF REFERENCES, DROP FIRST THE KEY FROM building_item
+    #    ALTER TABLE {1} ADD CONSTRAINT constraint_{2} PRIMARY KEY({2});
+
     conn.execute('''
-        ALTER TABLE {1} DROP CONSTRAINT IF EXISTS constraint_pk_{1}_{2};
-        ALTER TABLE {1} ADD CONSTRAINT constraint_pk_{1}_{2} PRIMARY KEY({2});
         ALTER TABLE {1} ALTER COLUMN {2} SET NOT NULL;
         ALTER TABLE {1} ALTER COLUMN geometry TYPE geometry;
         ALTER TABLE {1} ALTER COLUMN openindoor_centroid TYPE geometry;
@@ -529,8 +323,9 @@ def upsert(table, conn, keys, data_iter):
 
 def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name):
     
-    
-    engine=create_engine(system + "://" + user + ":" + password +"@" + server + ":" + str(port) + "/" + db_name)
+    #ssl_args = {'sslrootcert':'server-ca.pem', 'sslcert':'client-cert.pem', 'sslkey':'client-key.pem'}
+    ssl_args = {'sslrootcert': 'server-ca(2).pem', 'sslcert':'client_cert.pem', 'sslkey':'client_key.pem'}
+    engine=create_engine(system + "://" + user + ":" + password +"@" + server + ":" + str(port) + "/" + db_name, connect_args=ssl_args)
 
     # pool = create_engine(
     #     engine.url.URL.create(
@@ -557,26 +352,20 @@ def gdf_to_db(gdf, system, user, password, server, port, db_name, db_table_name)
         method = upsert
 )
 
-@app.route("/", methods=['GET',])
-def index():
-    main()
-    return "DONE"
-
-@app.errorhandler(500)
-def server_error(e):
-    logging.exception('An error occurred during a request.')
-    return """
-    An internal error occurred: <pre>{}</pre>
-    See logs for full stacktrace.
-    """.format(e), 500
 
 def main():
 
-    db_user = os.environ["DB_USER"]
-    db_port = os.environ["DB_PORT"]
-    db_pass = os.environ["DB_PASS"]
-    db_name = os.environ["DB_NAME"]
-    db_host = os.environ["DB_HOST"]
+    # db_user = os.environ["DB_USER"]
+    # db_port = os.environ["DB_PORT"]
+    # db_pass = os.environ["DB_PASS"]
+    # db_name = os.environ["DB_NAME"]
+    # db_host = os.environ["DB_HOST"]
+
+    db_user = os.environ["POSTGRES_USER"]
+    db_port = 5432
+    db_pass = os.environ["POSTGRES_PASSWORD"]
+    db_name = os.environ["POSTGRES_DB"]
+    db_host = os.environ["POSTGRES_HOST"]
 
     mygdf = geopandas.GeoDataFrame()
     with open('regions.json') as regions:
@@ -605,5 +394,4 @@ def main():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT",8080))
-    app.run(debug=True,host='0.0.0.0',port=port)
     main()
